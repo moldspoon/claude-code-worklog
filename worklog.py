@@ -50,8 +50,8 @@ REDACTIONS = [
     (re.compile(r"(\w+://[^/\s:@]+):[^@\s/]+@"), r"\1:***@"),
     # Authorization: Bearer xxx / Basic xxx
     (re.compile(r"(?i)(authorization:\s*(?:bearer|basic|token)\s+)[^\s'\"]+"), r"\1***"),
-    # mysql -pXXXX
-    (re.compile(r"(\s-p)(?!\s)[^\s'\"]+"), r"\1***"),
+    # mysql -pXXXX（mysql の仲間だけ。find -perm や ssh -p2222 は伏せない）
+    (re.compile(r"(\b(?:mysql|mysqldump|mysqladmin|mariadb|mariadb-dump)\b[^|;&\n]*?\s-p)(?!\s)[^\s'\"]+"), r"\1***"),
     # --password=XXXX / DB_PASSWORD=XXXX / token: XXXX / API_KEY=XXXX など
     (re.compile(r"(?i)((?:--)?[\w-]*(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|private[_-]?key|credential)[\w-]*\s*[=:]\s*)(['\"]?)[^\s'\"]+\2"), r"\1\2***\2"),
     # 形の決まったキー
@@ -67,8 +67,8 @@ REDACTIONS = [
     (re.compile(r"(hooks\.slack\.com/services/)[^\s'\"]+"), r"\1***"),
     (re.compile(r"(discord(?:app)?\.com/api/webhooks/)[^\s'\"]+"), r"\1***"),
     (re.compile(r"(api\.vercel\.com/v1/integrations/deploy/[^/\s]+/)[^\s'\"]+"), r"\1***"),
-    # 英字と数字が混ざった 40 文字以上の塊（16 進だけのハッシュは残す）
-    (re.compile(r"(?<![A-Za-z0-9+/_-])(?=[A-Za-z0-9+/=_-]*[g-zG-Z])(?=[A-Za-z0-9+/=_-]*\d)[A-Za-z0-9+/=_-]{40,}"), "***"),
+    # 英字と数字が混ざった 40 文字以上の塊（16 進だけのハッシュと、/ で始まるパスは残す）
+    (re.compile(r"(?<![A-Za-z0-9+/_-])(?!/)(?=[A-Za-z0-9+/=_-]*[g-zG-Z])(?=[A-Za-z0-9+/=_-]*\d)[A-Za-z0-9+/=_-]{40,}"), "***"),
 ]
 
 
@@ -115,6 +115,9 @@ def install(dry_run=False, uninstall=False):
             settings = json.load(f)
     except FileNotFoundError:
         settings = {}
+    except ValueError as e:
+        print(f"{SETTINGS} を JSON として読めませんでした（{e}）。直してから、もう一度実行してください。", file=sys.stderr)
+        return 1
     hooks = settings.setdefault("hooks", {})
     changed = False
     for event in HOOK_EVENTS:

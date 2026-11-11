@@ -40,6 +40,11 @@ class RedactTest(unittest.TestCase):
         for src, want in cases.items():
             self.assertEqual(worklog.redact(src), want, src)
 
+    def test_no_false_positives(self):
+        for src in ("find . -perm 644 -print", "ssh -p2222 host", "git log -p",
+                    "cd /home/user/projects/client2025/backend/app"):
+            self.assertEqual(worklog.redact(src), src)
+
     def test_keeps_hashes(self):
         sha = "a" * 40
         self.assertEqual(worklog.redact("git checkout " + sha), "git checkout " + sha)

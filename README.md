@@ -11,7 +11,7 @@ date,project,path,minutes,hours,blocks,commands
 2026-11-05,shop-site,~/dev/shop-site,140,2:20,4,63
 ```
 
-- Python 3.9 以上の標準ライブラリだけで動きます（`pip install` は不要）
+- Python 3.10 以上の標準ライブラリだけで動きます（`pip install` は不要）
 - **外には何も送りません。** 読むのも書くのも手元のファイルだけです
 - コマンドの出力は残しません。パスワードやトークンらしい値は、書き込む前に伏せます
 
